@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Student — Advanced CBT (No Login)</title>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <style>
+    :root{--accent:#0b6efd;--muted:#6b7280;--card:#ffffff;--bg:#f7fbff}
+    body{margin:0;font-family:Inter,Arial;background:var(--bg);color:#0f172a}
+    header{background:#fff;padding:1rem;display:flex;align-items:center;gap:1rem;border-bottom:1px solid #e6eef8}
+    .logo{height:48px;width:48px;border-radius:8px;background:linear-gradient(135deg,#0b6efd,#7c3aed);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700}
+    .school{font-weight:700}
+    .sub{color:var(--muted)}
+    .container{max-width:900px;margin:1.25rem auto;padding:0 1rem}
+    .card{background:var(--card);border-radius:12px;padding:1rem;box-shadow:0 6px 18px rgba(15,23,42,.04);margin-bottom:1rem}
+    .list-item{border:1px dashed #eef3ff;padding:.6rem;border-radius:8px;margin-bottom:.5rem;display:flex;justify-content:space-between;align-items:center}
+    .btn{background:var(--accent);color:#fff;padding:.55rem .8rem;border-radius:8px;border:0;cursor:pointer}
+    .small{font-size:.9rem;color:var(--muted)}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">SCH</div>
+    <div>
+      <div class="school">Your School Name</div>
+      <div class="sub">Student Portal — Published Assessments</div>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="card">
+      <h3>Available Exams</h3>
+      <div id="examsList"></div>
+    </div>
+
+    <div id="takeArea" class="card" style="display:none">
+      <h3 id="examTitle">Exam</h3>
+      <div id="questionsWrap"></div>
+      <div style="margin-top:.6rem" class="flex">
+        <button id="submitBtn" class="btn">Submit</button>
+        <button id="cancelBtn" class="btn" style="background:#fff;color:var(--accent);border:1px solid rgba(11,110,253,.12);margin-left:.5rem">Cancel</button>
+      </div>
+    </div>
+
+    <footer class="card small">This student portal shows only published exams. Answers are saved to Firestore as anonymous submissions.</footer>
+  </main>
+
+  <script>
+    // ---------- FIREBASE CONFIG (REPLACE) ----------
+const firebaseConfig = {
+  apiKey: "AIzaSyCNu8BBNeRgTHipnHajCJ7GdZCe4MI9mzs",
+  authDomain: "year1-66f86.firebaseapp.com",
+  databaseURL: "https://year1-66f86-default-rtdb.firebaseio.com",
+  projectId: "year1-66f86",
+  storageBucket: "year1-66f86.firebasestorage.app",
+  messagingSenderId: "1053137572292",
+  appId: "1:1053137572292:web:8d4112259bb0eac3381491"
+};
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // anonymous local id for this student (to identify submission)
+    let studentId = localStorage.getItem('cbt_student_id');
+    if(!studentId){ studentId = 'stu_' + Date.now() + '_' + Math.floor(Math.random()*9999); localStorage.setItem('cbt_student_id', studentId); }
+
+    const examsList = document.getElementById('examsList');
+    const takeArea = document.getElementById('takeArea');
+    const questionsWrap = document.getElementById('questionsWrap');
+    const examTitleEl = document.getElementById('examTitle');
+    const submitBtn = document.getElementById('submitBtn');
+    const cancelBtn = document.getElementById('cancelBtn');
+
+    let activeExam = null;
+
+    async function loadPublished(){
+      examsList.innerHTML = 'Loading...';
+      const snaps = await db.collection('exams').where('published','==',true).orderBy('createdAt','desc').get();
+      examsList.innerHTML = '';
+      snaps.forEach(doc=>{
+        const d = doc.data();
+        const el = document.createElement('div'); el.className='list-item';
+        el.innerHTML = `<div><strong>${escapeHtml(d.title)}</strong><div class='small'>${escapeHtml(d.theclass||'')} • ${d.term||''} ${d.year||''} • ${d.questions?.length || 0} Qs</div></div><div><button class='btn' data-id='${doc.id}'>Start</button></div>`;
+        examsList.appendChild(el);
+      });
+      examsList.querySelectorAll('button').forEach(b=> b.onclick = ()=> startExam(b.dataset.id));
+    }
+
+    async function startExam(id){
+      const snap = await db.collection('exams').doc(id).get(); if(!snap.exists) return alert('Exam not found');
+      const d = snap.data(); activeExam = {id, data:d};
+      examTitleEl.textContent = d.title;
+      questionsWrap.innerHTML = '';
+      d.questions.forEach((q, idx)=>{
+        const qDiv = document.createElement('div'); qDiv.style.marginBottom = '.8rem';
+        qDiv.innerHTML = `<div><strong>Q${idx+1}:</strong> <div>${q.text}</div></div>`;
+        const opts = document.createElement('div'); opts.style.marginTop = '.4rem';
+        (q.options||[]).forEach((opt,j)=>{
+          const idopt = `q_${idx}_opt_${j}`;
+          const label = document.createElement('label'); label.style.display='block';
+          label.innerHTML = `<input type='radio' name='q_${idx}' value='${j}' id='${idopt}'/> ${opt}`;
+          opts.appendChild(label);
+        });
+        qDiv.appendChild(opts);
+        questionsWrap.appendChild(qDiv);
+      });
+      takeArea.style.display = 'block';
+      window.scrollTo({top:0,behavior:'smooth'});
+    }
+
+    cancelBtn.onclick = ()=>{ takeArea.style.display='none'; questionsWrap.innerHTML=''; activeExam=null; }
+
+    submitBtn.onclick = async ()=>{
+      if(!activeExam) return;
+      const responses = [];
+      let score = 0; let total = 0;
+      activeExam.data.questions.forEach((q, idx)=>{
+        const sel = document.querySelector(`input[name='q_${idx}']:checked`);
+        const selIdx = sel ? Number(sel.value) : null;
+        responses.push({questionId: q.id, selected: selIdx, correct: q.answer});
+        total += q.marks || 1; if(selIdx !== null && selIdx === q.answer) score += q.marks || 1;
+      });
+      await db.collection('submissions').add({examId: activeExam.id, studentId, responses, score, total, createdAt: firebase.firestore.FieldValue.serverTimestamp()});
+      alert(`Submitted — Score (auto): ${score}/${total}`);
+      takeArea.style.display='none'; questionsWrap.innerHTML=''; activeExam=null; loadPublished();
+    }
+
+    function escapeHtml(str){ if(!str) return ''; return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+    loadPublished();
+  </script>
+</body>
+</html>
