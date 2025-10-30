@@ -317,7 +317,6 @@ questions = window.getQuestions() || [];
       }
     });
   }
-
   if (questions.length === 0) {
     toast("No questions found in editor.", "error");
     return;
@@ -328,16 +327,16 @@ questions = window.getQuestions() || [];
   console.error("attachSaveHandler:", err);
   toast("Save failed: " + err.message, "error");
 }
-```
-
-});
-}
+}); // ✅ closes event listener properly
+} // ✅ closes attachSaveHandler function
 
 // ---------------------------
 // Init
 // ---------------------------
 (function init() {
-attachSaveHandler();
+  attachSaveHandler();
+})();
+
 const year = safe(yearInput?.value);
 loadAssessments(year ? { year } : {});
 [yearInput, termSelect, classSelect, subjectSelect].forEach((el) => {
@@ -354,5 +353,6 @@ subject: subjectSelect?.value
 })();
 
 export default { saveAssessment, loadAssessments, cachedAssessments };
+
 
 
