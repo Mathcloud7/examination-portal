@@ -23,14 +23,15 @@ return el;
 
 // ---------- Safety & string helpers ----------
 export function escapeHtml(s) {
-if (s === undefined || s === null) return '';
-return String(s)
-.replace(/&/g, '&')
-.replace(/</g, '<')
-.replace(/>/g, '>')
-.replace(/"/g, '"')
-.replace(/'/g, ''');
+  if (s === undefined || s === null) return '';
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
+
 
 export function htmlToPlainText(html) {
 if (!html) return '';
@@ -262,3 +263,4 @@ debounce, throttle,
 enable, toggleVisibility,
 safeParse
 };
+
