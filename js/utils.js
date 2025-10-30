@@ -190,14 +190,6 @@ return `
     </td>
   </tr>
 `;
-
-    <td style="white-space:nowrap">
-      <button class="btn small edit-btn" data-id="${item.id}">Edit</button>
-      <button class="btn ghost small preview-btn" data-id="${item.id}">Preview</button>
-      <button class="btn ghost small delete-btn" data-id="${item.id}">Delete</button>
-      <button class="btn small publish-btn" data-id="${item.id}" data-status="${d.status || "Draft"}">${pubLabel}</button>
-    </td>
-  </tr>`;
 ```
 
 }).join("");
@@ -362,4 +354,5 @@ subject: subjectSelect?.value
 })();
 
 export default { saveAssessment, loadAssessments, cachedAssessments };
+
 
