@@ -3,132 +3,269 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Student — Advanced CBT (No Login)</title>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <title>Orli International Academy — Teacher Exam Creator (v3)</title>
+
+  <!-- KaTeX (for math preview rendering) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+
+  <!-- SheetJS for Excel parsing -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
   <style>
-    :root{--accent:#0b6efd;--muted:#6b7280;--card:#ffffff;--bg:#f7fbff}
-    body{margin:0;font-family:Inter,Arial;background:var(--bg);color:#0f172a}
-    header{background:#fff;padding:1rem;display:flex;align-items:center;gap:1rem;border-bottom:1px solid #e6eef8}
-    .logo{height:48px;width:48px;border-radius:8px;background:linear-gradient(135deg,#0b6efd,#7c3aed);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700}
-    .school{font-weight:700}
-    .sub{color:var(--muted)}
-    .container{max-width:900px;margin:1.25rem auto;padding:0 1rem}
-    .card{background:var(--card);border-radius:12px;padding:1rem;box-shadow:0 6px 18px rgba(15,23,42,.04);margin-bottom:1rem}
-    .list-item{border:1px dashed #eef3ff;padding:.6rem;border-radius:8px;margin-bottom:.5rem;display:flex;justify-content:space-between;align-items:center}
-    .btn{background:var(--accent);color:#fff;padding:.55rem .8rem;border-radius:8px;border:0;cursor:pointer}
-    .small{font-size:.9rem;color:var(--muted)}
+    :root {
+      --blue: #004AAD;
+      --muted: #6b7280;
+      --bg: #f6f9ff;
+      --card: #ffffff;
+      --radius: 12px;
+      --shadow: 0 6px 18px rgba(2,6,23,.06);
+      --max-width: 1100px;
+      --ui-gap: 12px;
+    }
+
+    * { box-sizing: border-box; }
+    html,body {
+      height:100%; margin:0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial;
+      background: var(--bg); color: #0f172a; font-size: 15px; line-height: 1.4;
+    }
+
+    header {
+      background: linear-gradient(90deg,var(--blue), #1756c1);
+      color: white;
+      padding: 14px 20px;
+      display: flex;
+      gap: 14px;
+      align-items: center;
+      box-shadow: var(--shadow);
+    }
+    .logo { height:56px; width:56px; border-radius:10px; background:#fff; display:flex; align-items:center; justify-content:center; overflow:hidden; flex-shrink:0; }
+    .logo img{ width:100%; height:100%; object-fit:cover; display:block; }
+    .brand { font-weight:800; font-size:1.05rem; }
+    .subtitle { font-size:13px; opacity: .95; margin-top:3px; color: rgba(255,255,255,.92); }
+
+    main { max-width: var(--max-width); margin: 18px auto; padding: 0 12px 36px; }
+
+    .card { background: var(--card); padding: 14px; border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 14px; }
+    .grid { display: grid; grid-template-columns: 1fr 380px; gap: 14px; align-items: start; }
+    @media (max-width: 980px) { .grid { grid-template-columns: 1fr; } }
+
+    label { display:block; font-size:13px; color:var(--muted); margin-bottom:6px; }
+    input[type="text"], input[type="number"], select {
+      width:100%; padding:8px; border-radius:8px;
+      border:1px solid #e6eefc; background: #fff;
+    }
+
+    .toolbar { display:flex; flex-wrap:wrap; gap:8px; margin-top:6px; }
+    .toolbtn { padding:6px 10px; border-radius:8px; border:1px solid #e6eefc; background:#f8fbff; cursor:pointer; font-size:14px; }
+
+    .btn { padding:8px 12px; border-radius:8px; border:none; background:var(--blue); color:#fff; cursor:pointer; font-weight:600; }
+    .btn.ghost { background: transparent; border:1px solid #e6eefc; color: var(--muted); font-weight:600; }
+    .primary { background: var(--blue); color: #fff; }
+    .small { font-size:13px; color:var(--muted); }
+
+    .row { display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+    .spaced { justify-content:space-between; align-items:center; display:flex; gap:12px; flex-wrap:wrap; }
+
+    .table-wrap { overflow:auto; max-height:520px; }
+
+    table { width:100%; border-collapse:collapse; font-size:14px; }
+    th, td { padding:8px; text-align:left; border-bottom:1px solid #f0f3fb; vertical-align:middle; }
+    th { color:var(--muted); font-weight:700; font-size:13px; }
+
+    .modal { position: fixed; inset:0; display:none; align-items:center; justify-content:center; background: rgba(2,6,23,.45); padding:20px; z-index:9999; }
+    .modal .inner { width: min(980px, 96%); max-height: 84vh; overflow:auto; background: #fff; border-radius:12px; padding:16px; box-shadow: 0 20px 60px rgba(2,6,23,.3); }
+    .modal h3 { margin:0 0 6px 0; }
+
+    #toastWrap { position: fixed; right: 18px; top: 18px; z-index: 99999; display:flex; flex-direction:column; gap:8px; }
+
+    footer { text-align:center; color:var(--muted); margin-top:12px; font-size:13px; }
+
+    @media (max-width:640px) {
+      .logo{height:48px;width:48px}
+      .brand{font-size:1rem}
+    }
   </style>
 </head>
 <body>
+
   <header>
-    <div class="logo">SCH</div>
-    <div>
-      <div class="school">Your School Name</div>
-      <div class="sub">Student Portal — Published Assessments</div>
+    <div class="logo">
+      <img src="logo.png" alt="logo" onerror="this.style.display='none'">
     </div>
+    <div style="flex:1">
+      <div class="brand">Orli International Academy</div>
+      <div class="subtitle">Teacher — Exam Creator (v3)</div>
+    </div>
+    <div id="statusArea" class="small">Ready</div>
   </header>
 
-  <main class="container">
+  <main>
+    <!-- Metadata Card -->
     <div class="card">
-      <h3>Available Exams</h3>
-      <div id="examsList"></div>
-    </div>
+      <div class="row" style="align-items:flex-end;">
+        <div style="width:140px">
+          <label for="yearInput">Year</label>
+          <input id="yearInput" type="number" value="2025" />
+        </div>
 
-    <div id="takeArea" class="card" style="display:none">
-      <h3 id="examTitle">Exam</h3>
-      <div id="questionsWrap"></div>
-      <div style="margin-top:.6rem" class="flex">
-        <button id="submitBtn" class="btn">Submit</button>
-        <button id="cancelBtn" class="btn" style="background:#fff;color:var(--accent);border:1px solid rgba(11,110,253,.12);margin-left:.5rem">Cancel</button>
+        <div style="width:160px">
+          <label for="termSelect">Term</label>
+          <select id="termSelect">
+            <option>First Term</option>
+            <option>Second Term</option>
+            <option>Third Term</option>
+          </select>
+        </div>
+
+        <div style="min-width:160px;flex:1">
+          <label for="classSelect">Class</label>
+          <select id="classSelect">
+            <option>Year 1</option>
+            <option>Year 2</option>
+            <option>Year 3</option>
+            <option>Year 4</option>
+            <option>Year 5</option>
+            <option selected>Year 6</option>
+          </select>
+        </div>
+
+        <div style="width:220px">
+          <label for="assessmentSelect">Assessment Name</label>
+          <select id="assessmentSelect">
+            <option>Examination</option>
+            <option>CA1</option>
+            <option>CA2</option>
+            <option>Assignment</option>
+          </select>
+        </div>
+
+        <div style="width:260px">
+          <label for="subjectSelect">Subject</label>
+          <select id="subjectSelect">
+            <option>Science</option>
+            <option>Home Economics</option>
+            <option>Geography</option>
+            <option>Agricultural Science</option>
+            <option>Mathematics</option>
+            <option>Civic Education</option>
+            <option>English Studies</option>
+            <option>History</option>
+            <option>Christian Religious Studies</option>
+            <option>Islam Religious Studies</option>
+            <option>Information and Communication Technology</option>
+            <option>Personal Social and Health Education</option>
+            <option>General Knowledge</option>
+          </select>
+        </div>
       </div>
     </div>
 
-    <footer class="card small">This student portal shows only published exams. Answers are saved to Firestore as anonymous submissions.</footer>
+    <!-- Main Layout -->
+    <div class="grid">
+      <section>
+        <div class="card">
+          <!-- Question Editor -->
+          <div class="spaced">
+            <strong>Question Editor</strong>
+            <div class="small" id="editorStatus">No unsaved changes</div>
+          </div>
+          <hr style="margin:12px 0" />
+
+          <!-- Excel Upload -->
+          <div class="row">
+            <div style="flex:1;min-width:220px">
+              <label for="excelInput">Upload Excel (.xlsx or .xls)</label>
+              <input id="excelInput" type="file" accept=".xlsx, .xls" />
+            </div>
+            <div style="min-width:220px">
+              <label>&nbsp;</label>
+              <div style="display:flex;gap:8px">
+                <button id="loadToEditorBtn" class="btn ghost">Load to Editor</button>
+                <button id="downloadSample" class="btn">Download Sample</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Excel Preview -->
+          <div id="excelPreviewContainer"
+               style="margin-top:12px; overflow:auto; max-height:240px; border:1px solid #e6eefc; border-radius:8px; padding:6px;">
+          </div>
+
+          <hr style="margin:12px 0" />
+
+          <!-- Math Toolbar -->
+          <label>Math Symbol Toolbar</label>
+          <div class="toolbar" id="toolbar">
+            <button class="toolbtn" data-value="½">½</button>
+            <button class="toolbtn" data-value="(a)/(b)">(a)/(b)</button>
+            <button class="toolbtn" data-value="<sup>2</sup>">x²</button>
+            <button class="toolbtn" data-value="√()">√( )</button>
+            <button class="toolbtn" data-value="π">π</button>
+            <button class="toolbtn" data-value="≤">≤</button>
+            <button class="toolbtn" data-value="≥">≥</button>
+            <button class="toolbtn" data-value="×">×</button>
+            <button class="toolbtn" data-value="÷">÷</button>
+            <button class="toolbtn" data-value="+">+</button>
+            <button class="toolbtn" data-value="-">-</button>
+            <button class="toolbtn" data-value="=">=</button>
+          </div>
+
+          <hr style="margin:12px 0" />
+
+          <!-- Editable Question List -->
+          <div>
+            <h4>Questions (editable)</h4>
+            <div id="questionList" aria-live="polite" class="question-list"></div>
+            <div class="actions-row" style="margin-top:12px">
+              <button id="addQuestionBtn" class="btn">+ Add Question</button>
+              <button id="saveAssessmentBtn" class="btn primary">Save Assessment</button>
+              <button id="showPreviewBtn" class="btn ghost">Preview (Local)</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <aside>
+        <div class="card">
+          <h4>Saved Assessments</h4>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Type</th><th>Subject</th><th>Class</th><th>Date</th><th>Actions</th></tr>
+              </thead>
+              <tbody id="uploadedAssessmentsBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <footer class="small">Orli International Academy — Teacher Portal</footer>
   </main>
 
-  <script>
-    // ---------- FIREBASE CONFIG (REPLACE) ----------
-const firebaseConfig = {
-  apiKey: "AIzaSyCNu8BBNeRgTHipnHajCJ7GdZCe4MI9mzs",
-  authDomain: "year1-66f86.firebaseapp.com",
-  databaseURL: "https://year1-66f86-default-rtdb.firebaseio.com",
-  projectId: "year1-66f86",
-  storageBucket: "year1-66f86.firebasestorage.app",
-  messagingSenderId: "1053137572292",
-  appId: "1:1053137572292:web:8d4112259bb0eac3381491"
-};
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
+  <!-- Preview Modal -->
+  <div id="previewModal" class="modal">
+    <div class="inner">
+      <div class="spaced">
+        <h3>Preview</h3>
+        <button id="closePreview" class="btn ghost">Close</button>
+      </div>
+      <div id="previewInner" style="margin-top:12px"></div>
+    </div>
+  </div>
 
-    // anonymous local id for this student (to identify submission)
-    let studentId = localStorage.getItem('cbt_student_id');
-    if(!studentId){ studentId = 'stu_' + Date.now() + '_' + Math.floor(Math.random()*9999); localStorage.setItem('cbt_student_id', studentId); }
+  <!-- Toast Notification Container -->
+  <div id="toastWrap"></div>
 
-    const examsList = document.getElementById('examsList');
-    const takeArea = document.getElementById('takeArea');
-    const questionsWrap = document.getElementById('questionsWrap');
-    const examTitleEl = document.getElementById('examTitle');
-    const submitBtn = document.getElementById('submitBtn');
-    const cancelBtn = document.getElementById('cancelBtn');
+  <!-- JS Modules -->
+<script type="module" src="./firebase-config.js"></script>
+<script type="module" src="./js/utils.js"></script>
+<script type="module" src="./js/excel-handler.js"></script>
+<script type="module" src="./js/question-editor.js"></script>
+<script type="module" src="./js/assessment-manager.js"></script>
+<script type="module" src="./js/preview.js"></script>
 
-    let activeExam = null;
-
-    async function loadPublished(){
-      examsList.innerHTML = 'Loading...';
-      const snaps = await db.collection('exams').where('published','==',true).orderBy('createdAt','desc').get();
-      examsList.innerHTML = '';
-      snaps.forEach(doc=>{
-        const d = doc.data();
-        const el = document.createElement('div'); el.className='list-item';
-        el.innerHTML = `<div><strong>${escapeHtml(d.title)}</strong><div class='small'>${escapeHtml(d.theclass||'')} • ${d.term||''} ${d.year||''} • ${d.questions?.length || 0} Qs</div></div><div><button class='btn' data-id='${doc.id}'>Start</button></div>`;
-        examsList.appendChild(el);
-      });
-      examsList.querySelectorAll('button').forEach(b=> b.onclick = ()=> startExam(b.dataset.id));
-    }
-
-    async function startExam(id){
-      const snap = await db.collection('exams').doc(id).get(); if(!snap.exists) return alert('Exam not found');
-      const d = snap.data(); activeExam = {id, data:d};
-      examTitleEl.textContent = d.title;
-      questionsWrap.innerHTML = '';
-      d.questions.forEach((q, idx)=>{
-        const qDiv = document.createElement('div'); qDiv.style.marginBottom = '.8rem';
-        qDiv.innerHTML = `<div><strong>Q${idx+1}:</strong> <div>${q.text}</div></div>`;
-        const opts = document.createElement('div'); opts.style.marginTop = '.4rem';
-        (q.options||[]).forEach((opt,j)=>{
-          const idopt = `q_${idx}_opt_${j}`;
-          const label = document.createElement('label'); label.style.display='block';
-          label.innerHTML = `<input type='radio' name='q_${idx}' value='${j}' id='${idopt}'/> ${opt}`;
-          opts.appendChild(label);
-        });
-        qDiv.appendChild(opts);
-        questionsWrap.appendChild(qDiv);
-      });
-      takeArea.style.display = 'block';
-      window.scrollTo({top:0,behavior:'smooth'});
-    }
-
-    cancelBtn.onclick = ()=>{ takeArea.style.display='none'; questionsWrap.innerHTML=''; activeExam=null; }
-
-    submitBtn.onclick = async ()=>{
-      if(!activeExam) return;
-      const responses = [];
-      let score = 0; let total = 0;
-      activeExam.data.questions.forEach((q, idx)=>{
-        const sel = document.querySelector(`input[name='q_${idx}']:checked`);
-        const selIdx = sel ? Number(sel.value) : null;
-        responses.push({questionId: q.id, selected: selIdx, correct: q.answer});
-        total += q.marks || 1; if(selIdx !== null && selIdx === q.answer) score += q.marks || 1;
-      });
-      await db.collection('submissions').add({examId: activeExam.id, studentId, responses, score, total, createdAt: firebase.firestore.FieldValue.serverTimestamp()});
-      alert(`Submitted — Score (auto): ${score}/${total}`);
-      takeArea.style.display='none'; questionsWrap.innerHTML=''; activeExam=null; loadPublished();
-    }
-
-    function escapeHtml(str){ if(!str) return ''; return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-    loadPublished();
-  </script>
 </body>
 </html>
