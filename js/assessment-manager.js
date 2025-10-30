@@ -177,6 +177,13 @@ const html = data
     const dateStr = formatDateTime(d.createdAt);
     const pubLabel = d.status === "Published" ? "Unpublish" : "Publish";
 
+   const rowsHtml = data.map((item) => {
+    const d = item.data;
+    const dateStr = d.createdAt
+      ? new Date(d.createdAt.seconds * 1000).toLocaleDateString()
+      : "";
+    const pubLabel = d.status === "Published" ? "Unpublish" : "Publish";
+
     return `
       <tr>
         <td>${d.assessmentName || ""}</td>
@@ -187,10 +194,16 @@ const html = data
           <button class="btn small edit-btn" data-id="${item.id}">Edit</button>
           <button class="btn ghost small preview-btn" data-id="${item.id}">Preview</button>
           <button class="btn ghost small delete-btn" data-id="${item.id}">Delete</button>
-          <button class="btn small publish-btn" data-id="${item.id}" data-status="${d.status || "Draft"}">${pubLabel}</button>
+          <button class="btn small publish-btn" data-id="${item.id}" data-status="${
+            d.status || "Draft"
+          }">${pubLabel}</button>
         </td>
       </tr>`;
-  })
+  }).join("");
+
+  document.getElementById("uploadedAssessmentsBody").innerHTML = rowsHtml;
+}
+
   .join("");
 
 
@@ -358,4 +371,5 @@ subject: subjectSelect?.value,
 })();
 
 export default { saveAssessment, loadAssessments, cachedAssessments };
+
 
