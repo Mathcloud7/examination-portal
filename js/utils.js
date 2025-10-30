@@ -32,18 +32,18 @@ export function escapeHtml(s) {
     .replace(/'/g, '&#39;');
 }
 
-
 export function htmlToPlainText(html) {
-if (!html) return '';
-let t = String(html)
-.replace(/<div>/gi, '\n')
-.replace(/</div>/gi, '\n')
-.replace(/<p>/gi, '\n')
-.replace(/</p>/gi, '\n')
-.replace(/<br\s*/?>/gi, '\n');
-t = t.replace(/<[^>]+>/g, '');
-return t.replace(/\n\s*\n/g, '\n').replace(/\u00A0/g, ' ').trim();
+  if (!html) return '';
+  let t = String(html)
+    .replace(/<div>/gi, '\n')
+    .replace(/<\/div>/gi, '\n')
+    .replace(/<p>/gi, '\n')
+    .replace(/<\/p>/gi, '\n')
+    .replace(/<br\s*\/?>/gi, '\n'); // ✅ fixed regex
+  t = t.replace(/<[^>]+>/g, '');
+  return t.replace(/\n\s*\n/g, '\n').replace(/\u00A0/g, ' ').trim();
 }
+
 
 // ---------- math / KaTeX helpers ----------
 export function convertPlainToLatexFragment(plain) {
@@ -263,4 +263,5 @@ debounce, throttle,
 enable, toggleVisibility,
 safeParse
 };
+
 
