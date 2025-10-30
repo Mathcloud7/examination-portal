@@ -1,12 +1,13 @@
 // ------------------------------------------------------
-// Question Editor Module — Final Complete Version
+// Question Editor Module — Final Complete Version (Vercel Safe)
 // ------------------------------------------------------
 // Dependencies: firebase-config.js, utils.js, preview.js
 // ------------------------------------------------------
 
 import { showToast, showLoader, hideLoader, confirmAction } from "./utils.js";
 import { renderMath } from "./preview.js";
-import { storage } from "./firebase-config.js";
+import { storage } from "../firebase-config.js"; // ✅ fixed import path for Vercel
+
 import {
   getDownloadURL,
   ref,
