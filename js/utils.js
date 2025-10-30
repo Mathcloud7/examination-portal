@@ -1,5 +1,5 @@
 //
-// utils.js — Clean & Corrected Version
+// utils.js — Final Corrected Version
 // Shared utilities for Orli Exam Creator (ES module)
 // Usage: import { toast, escapeHtml, renderMixedText, uid, debounce, confirmDialog, showLoader, hideLoader, formatDateTime, confirmAction } from './utils.js';
 //
@@ -51,7 +51,7 @@ if (!plain && plain !== 0) return '';
 let s = String(plain);
 s = s.replace(/(([^)]+))/(([^)]+))/g, (*, a, b) => `\\frac{${a}}{${b}}`);
 s = s.replace(/\b([0-9]+)/([0-9]+)\b/g, (*, a, b) => `\\frac{${a}}{${b}}`);
-s = s.replace(/sqrt(\s*([^)]+)\s*)/gi, (_, a) => `\\sqrt{${a}}`);
+s = s.replace(/sqrt(([^)]+))/gi, (_, a) => `\\sqrt{${a}}`);
 s = s.replace(/([A-Za-z0-9)}])^([A-Za-z0-9{]+)/g, (m, a, b) => `${a}^{${b}}`);
 s = s.replace(/\bpi\b/g, '\pi');
 s = s.replace(/\be\b/g, '\mathrm{e}');
@@ -61,7 +61,7 @@ return s;
 export function renderMixedText(plain) {
 try {
 const converted = convertPlainToLatexFragment(plain || '');
-const tokenPattern = /(\frac{[^}]+}{[^}]+}|\sqrt{[^}]+}|[a-zA-Z]+|[0-9]+(?:.[0-9]+)?[/][0-9]+|[=+-×÷≤≥<>^])/g;
+const tokenPattern = /(\frac{[^}]+}{[^}]+}|\sqrt{[^}]+}|[a-zA-Z]+|[0-9]+(?:.[0-9]+)?/[0-9]+|[=+-×÷≤≥<>^])/g;
 const parts = converted.split(tokenPattern).filter(Boolean);
 return parts
 .map(part => {
