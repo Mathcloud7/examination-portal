@@ -271,3 +271,27 @@ export default {
   enable, toggleVisibility,
   safeParse
 };
+export function showToast(message, type = 'info') {
+  const toast = document.createElement('div');
+  toast.textContent = message;
+  toast.className = `toast ${type}`;
+  Object.assign(toast.style, {
+    position: 'fixed',
+    bottom: '20px',
+    right: '20px',
+    background: type === 'error' ? '#e74c3c' : '#2ecc71',
+    color: 'white',
+    padding: '10px 16px',
+    borderRadius: '6px',
+    fontSize: '14px',
+    zIndex: 9999,
+    boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
+    transition: 'opacity 0.3s ease'
+  });
+  document.body.appendChild(toast);
+  setTimeout(() => {
+    toast.style.opacity = 0;
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
+}
+
