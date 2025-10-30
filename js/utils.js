@@ -1,6 +1,6 @@
 //
-// utils.js
-// Common utilities for Orli Exam Creator (ES module).
+// utils.js — Clean & Corrected Version
+// Shared utilities for Orli Exam Creator (ES module)
 // Usage: import { toast, escapeHtml, renderMixedText, uid, debounce, confirmDialog, showLoader, hideLoader, formatDateTime, confirmAction } from './utils.js';
 //
 
@@ -8,15 +8,9 @@ const TOAST_CONTAINER_ID = 'toastWrap';
 const STATUS_AREA_ID = 'statusArea';
 
 // ---------- DOM helpers ----------
-function $id(id) {
-return document.getElementById(id);
-}
-function qs(selector, scope = document) {
-return scope.querySelector(selector);
-}
-function qsa(selector, scope = document) {
-return Array.from(scope.querySelectorAll(selector));
-}
+function $id(id) { return document.getElementById(id); }
+function qs(selector, scope = document) { return scope.querySelector(selector); }
+function qsa(selector, scope = document) { return Array.from(scope.querySelectorAll(selector)); }
 function createEl(tag = 'div', attrs = {}, html = '') {
 const el = document.createElement(tag);
 for (const k in attrs) {
@@ -69,7 +63,8 @@ try {
 const converted = convertPlainToLatexFragment(plain || '');
 const tokenPattern = /(\frac{[^}]+}{[^}]+}|\sqrt{[^}]+}|[a-zA-Z]+|[0-9]+(?:.[0-9]+)?[/][0-9]+|[=+-×÷≤≥<>^])/g;
 const parts = converted.split(tokenPattern).filter(Boolean);
-return parts.map(part => {
+return parts
+.map(part => {
 if (/\frac|\sqrt|[a-zA-Z]+|[0-9]+/[0-9]+|[=+-×÷≤≥<>^]/.test(part)) {
 if (typeof katex !== 'undefined' && katex.renderToString) {
 try {
@@ -83,7 +78,8 @@ return `<code>${escapeHtml(part)}</code>`;
 } else {
 return escapeHtml(part);
 }
-}).join('');
+})
+.join('');
 } catch {
 return escapeHtml(String(plain || ''));
 }
@@ -95,11 +91,8 @@ return `${prefix}_${Date.now().toString(36)}_${Math.floor(Math.random() * 10000)
 }
 
 export function deepClone(obj) {
-try {
-return JSON.parse(JSON.stringify(obj));
-} catch {
-return Object.assign(Array.isArray(obj) ? [] : {}, obj);
-}
+try { return JSON.parse(JSON.stringify(obj)); }
+catch { return Object.assign(Array.isArray(obj) ? [] : {}, obj); }
 }
 
 // ---------- Date formatting ----------
@@ -127,10 +120,8 @@ return wrap;
 export function toast(message, type = 'info', ms = 3500) {
 const wrap = ensureToastWrap();
 const el = createEl('div', { style: 'min-width:260px;padding:10px;border-radius:8px;box-shadow:0 6px 18px rgba(2,6,23,.06);' });
-if (type === 'success') el.style.background = '#ecfdf5';
-else if (type === 'error') el.style.background = '#fff1f2';
-else el.style.background = '#f8fbff';
-el.innerHTML = `<div style="font-weight:700">${type === 'error' ? 'Error' : (type === 'success' ? 'Success' : 'Info')}</div><div style="margin-top:6px">${escapeHtml(String(message))}</div>`;
+el.style.background = type === 'success' ? '#ecfdf5' : type === 'error' ? '#fff1f2' : '#f8fbff';
+el.innerHTML = `<div style="font-weight:700">${type === 'error' ? 'Error' : type === 'success' ? 'Success' : 'Info'}</div><div style="margin-top:6px">${escapeHtml(String(message))}</div>`;
 wrap.appendChild(el);
 setTimeout(() => {
 el.style.transition = 'opacity .28s ease, transform .28s ease';
@@ -175,9 +166,9 @@ _confirmOverlay._cancel.onclick = () => cleanup(false);
 });
 }
 
-// ---------- confirmAction (compatibility helper) ----------
+// ---------- confirmAction ----------
 export async function confirmAction(message = "Are you sure?") {
-return new Promise((resolve) => {
+return new Promise(resolve => {
 const confirmed = window.confirm(message);
 resolve(confirmed);
 });
@@ -186,7 +177,7 @@ resolve(confirmed);
 // ---------- Loader ----------
 const loaders = new Map();
 export function showLoader(key = 'global', message = 'Loading...') {
-let container = key === 'global' ? document.body : $id(key) || document.body;
+const container = key === 'global' ? document.body : $id(key) || document.body;
 if (loaders.has(key)) return;
 const overlay = createEl('div', { style: 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.6);z-index:9998' });
 const box = createEl('div', { style: 'background:rgba(255,255,255,0.92);padding:12px;border-radius:8px;box-shadow:0 8px 20px rgba(2,6,23,.08);display:flex;gap:10px;align-items:center' });
@@ -235,7 +226,7 @@ return function (...args) {
 if (!inThrottle) {
 fn.apply(this, args);
 inThrottle = true;
-setTimeout(() => inThrottle = false, limit);
+setTimeout(() => (inThrottle = false), limit);
 }
 };
 }
