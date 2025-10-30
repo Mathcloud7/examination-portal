@@ -1,9 +1,8 @@
-// ------------------------------------------------------
-// preview.js — Fully Fixed and Vercel-Compatible Version
-// ------------------------------------------------------
-// Handles: Preview modal, KaTeX rendering, print/export.
-// Exports: renderMath(container), openPreviewModalFromData(questions, meta)
-// ------------------------------------------------------
+// preview.js
+// ----------------------------
+// Preview modal + KaTeX rendering + print/export support
+// Works with assessment-manager.js and utils.js
+// ----------------------------
 
 import {
   escapeHtml,
@@ -14,16 +13,18 @@ import {
   setStatus
 } from "./utils.js";
 
-// DOM element IDs
+// ----------------------------
+// Constants
+// ----------------------------
 const PREVIEW_MODAL_ID = "previewModal";
 const PREVIEW_INNER_ID = "previewInner";
 const SHOW_PREVIEW_BTN_ID = "showPreviewBtn";
 const CLOSE_PREVIEW_BTN_ID = "closePreview";
 const EXPORT_PRINT_BTN_ID = "previewPrintBtn";
 
-// ------------------------------------------------------
-// Utility: create element easily
-// ------------------------------------------------------
+// ----------------------------
+// Utility - Create element easily
+// ----------------------------
 function el(tag = "div", attrs = {}, inner = "") {
   const d = document.createElement(tag);
   for (const k in attrs) {
@@ -36,43 +37,45 @@ function el(tag = "div", attrs = {}, inner = "") {
   return d;
 }
 
-// ------------------------------------------------------
-// Render math in container (using renderMixedText → KaTeX)
-// ------------------------------------------------------
+// ----------------------------
+// Render math (KaTeX) inside container
+// ----------------------------
 export function renderMath(container) {
   if (!container) return;
+
   const targets = Array.from(
     container.querySelectorAll('[data-render-math="1"], .render-math')
   );
 
   if (targets.length === 0) {
-    Array.from(container.children).forEach(ch => {
+    Array.from(container.children).forEach((ch) => {
       if (["INPUT", "TEXTAREA", "SELECT", "BUTTON"].includes(ch.tagName)) return;
       try {
         ch.innerHTML = renderMixedText(
           htmlToPlainText(ch.innerHTML || ch.textContent || "")
         );
       } catch (e) {
-        // ignore rendering error
+        console.warn("Render math error:", e);
       }
     });
     return;
   }
 
-  targets.forEach(t => {
+  targets.forEach((t) => {
     try {
       t.innerHTML = renderMixedText(
         htmlToPlainText(t.innerHTML || t.textContent || "")
       );
-    } catch {
+    } catch (err) {
+      console.warn("Math render failed:", err);
       t.textContent = t.textContent || "";
     }
   });
 }
 
-// ------------------------------------------------------
-// Open Preview Modal from data
-// ------------------------------------------------------
+// ----------------------------
+// Open preview modal with data
+// ----------------------------
 export function openPreviewModalFromData(questions = [], meta = {}) {
   const modal = document.getElementById(PREVIEW_MODAL_ID);
   const inner = document.getElementById(PREVIEW_INNER_ID);
@@ -84,10 +87,11 @@ export function openPreviewModalFromData(questions = [], meta = {}) {
 
   inner.innerHTML = "";
 
-  // Header section
+  // Header
   const header = el("div", {
-    style: "display:flex;justify-content:space-between;align-items:center;gap:12px"
+    style: "display:flex;justify-content:space-between;align-items:center;gap:12px",
   });
+
   const left = el(
     "div",
     {},
@@ -109,19 +113,23 @@ export function openPreviewModalFromData(questions = [], meta = {}) {
       )}
     </div>`
   );
+
   header.appendChild(left);
 
   const actions = el("div", {});
   const printBtn = el(
     "button",
-    { class: "btn ghost", id: EXPORT_PRINT_BTN_ID, style: "margin-left:8px" },
+    {
+      class: "btn ghost",
+      id: EXPORT_PRINT_BTN_ID,
+      style: "margin-left:8px",
+    },
     "Print"
   );
   actions.appendChild(printBtn);
   header.appendChild(actions);
   inner.appendChild(header);
 
-  // Info row
   const info = el(
     "div",
     { style: "margin-top:10px; color:#475569" },
@@ -129,28 +137,28 @@ export function openPreviewModalFromData(questions = [], meta = {}) {
   );
   inner.appendChild(info);
 
-  // Questions wrapper
   const qwrap = el("div", {
-    style: "margin-top:16px; display:flex; flex-direction:column; gap:12px"
+    style: "margin-top:16px; display:flex;flex-direction:column;gap:12px",
   });
 
   questions.forEach((q, idx) => {
     const qcard = el("div", {
-      style: "padding:12px;border-radius:8px;background:#fff;border:1px solid #e6eefc"
+      style: "padding:12px;border-radius:8px;background:#fff;border:1px solid #e6eefc",
     });
 
     const qheader = el("div", {
-      style: "display:flex;justify-content:space-between;align-items:center;gap:8px"
+      style: "display:flex;justify-content:space-between;align-items:center;gap:8px",
     });
     qheader.innerHTML = `<div style="font-weight:700">Q${idx + 1}</div>
-                         <div class="small">Marks: ${escapeHtml(
-                           String(q.marks || 1)
-                         )}</div>`;
+      <div class="small">Marks: ${escapeHtml(String(q.marks || 1))}</div>`;
     qcard.appendChild(qheader);
 
     const qtext = el(
       "div",
-      { class: "render-math", style: "margin-top:8px;line-height:1.45" },
+      {
+        class: "render-math",
+        style: "margin-top:8px;line-height:1.45",
+      },
       renderMixedText(htmlToPlainText(q.question || ""))
     );
     qcard.appendChild(qtext);
@@ -160,14 +168,14 @@ export function openPreviewModalFromData(questions = [], meta = {}) {
       const img = el("img", {
         src: q.imageUrl,
         style:
-          "max-width:320px;display:block;border-radius:6px;border:1px solid #eef2ff"
+          "max-width:320px;display:block;border-radius:6px;border:1px solid #eef2ff",
       });
       imgWrap.appendChild(img);
       qcard.appendChild(imgWrap);
     }
 
     const opts = el("div", {
-      style: "margin-top:10px;display:flex;flex-direction:column;gap:6px"
+      style: "margin-top:10px;display:flex;flex-direction:column;gap:6px",
     });
     (q.options || []).forEach((opt, i) => {
       const optLabel = String.fromCharCode(65 + i);
@@ -179,23 +187,23 @@ export function openPreviewModalFromData(questions = [], meta = {}) {
         {
           style: `padding:8px;border-radius:6px;border:1px solid ${
             isCorrect ? "#d1fae5" : "#eef4ff"
-          };background:${isCorrect ? "#ecfdf5" : "#fbfdff"};display:flex;gap:8px;align-items:flex-start;`
+          };background:${
+            isCorrect ? "#ecfdf5" : "#fbfdff"
+          };display:flex;gap:8px;align-items:flex-start;`,
         },
-        `<strong style="width:28px;display:inline-block">${optLabel}.</strong> ${renderMixedText(
-          htmlToPlainText(opt || "")
-        )}`
+        `<strong style="width:28px;display:inline-block">${optLabel}.</strong> 
+        ${renderMixedText(htmlToPlainText(opt || ""))}`
       );
       opts.appendChild(optDiv);
     });
     qcard.appendChild(opts);
-
     qwrap.appendChild(qcard);
   });
 
   inner.appendChild(qwrap);
   modal.style.display = "flex";
 
-  // Print handler
+  // Print
   const printHandler = () => {
     const printable = `
       <html>
@@ -204,8 +212,8 @@ export function openPreviewModalFromData(questions = [], meta = {}) {
           <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
           <style>
             body { font-family: Arial, Helvetica, sans-serif; padding:20px; color:#0f172a; }
-            .q { margin-bottom:14px; padding:8px; border-bottom:1px solid #e6eefc; }
-            .q h4 { margin:0 0 8px 0; }
+            .q{ margin-bottom:14px; padding:8px; border-bottom:1px solid #e6eefc; }
+            .q h4{ margin:0 0 8px 0; }
           </style>
         </head>
         <body>
@@ -232,17 +240,19 @@ export function openPreviewModalFromData(questions = [], meta = {}) {
                 ${(q.options || [])
                   .map(
                     (o, i) =>
-                      `<div><strong>${String.fromCharCode(
-                        65 + i
-                      )}.</strong> ${escapeHtml(htmlToPlainText(o || ""))}</div>`
+                      `<div><strong>${String.fromCharCode(65 + i)}.</strong> ${escapeHtml(
+                        htmlToPlainText(o || "")
+                      )}</div>`
                   )
                   .join("")}
               </div>
-            </div>`
+            </div>
+          `
             )
             .join("")}
         </body>
-      </html>`;
+      </html>
+    `;
     const w = window.open("", "_blank", "noopener");
     if (!w) {
       toast("Popup blocked. Allow popups to print.", "error");
@@ -251,88 +261,56 @@ export function openPreviewModalFromData(questions = [], meta = {}) {
     w.document.open();
     w.document.write(printable);
     w.document.close();
-    setTimeout(() => w.print(), 500);
+    setTimeout(() => {
+      w.print();
+    }, 500);
   };
 
   const pb = document.getElementById(EXPORT_PRINT_BTN_ID);
   if (pb) pb.onclick = printHandler;
 }
 
-// ------------------------------------------------------
-// Try to gather questions if no export provided
-// ------------------------------------------------------
+// ----------------------------
+// Collect questions from DOM if no window.getQuestions()
+// ----------------------------
 function collectQuestionsFromDOM() {
   const out = [];
   const blocks = Array.from(
     document.querySelectorAll(".question-block, .question-card, [data-qid]")
   );
-
   if (blocks.length > 0) {
     for (const b of blocks) {
       const qInput =
-        b.querySelector(".questionInput, textarea") ||
-        b.querySelector("[data-field='text']") ||
-        b.querySelector(".editable");
-      const qText =
-        qInput?.value ||
-        qInput?.innerHTML ||
-        qInput?.textContent ||
-        b.querySelector("h4")?.textContent ||
-        b.querySelector(".qtext")?.textContent ||
-        "";
-
-      const optionEls = b.querySelectorAll(
-        ".optionInput, .option input, .editable-option, [data-field^='opt-']"
+        b.querySelector(".questionInput, textarea, [data-field='text'], .editable");
+      const qText = qInput
+        ? qInput.value ?? qInput.innerHTML ?? qInput.textContent
+        : b.querySelector("h4")?.textContent || "";
+      const optionEls = b.querySelectorAll(".optionInput, .option input, .editable-option");
+      let options = Array.from(optionEls).map(
+        (o) => o.value ?? o.innerHTML ?? o.textContent || ""
       );
-      let options = [];
-      if (optionEls.length > 0)
-        options = Array.from(optionEls).map(
-          o => o.value || o.innerHTML || o.textContent || ""
-        );
-      else {
-        const lis = b.querySelectorAll("li");
-        if (lis.length > 0)
-          options = Array.from(lis).map(li => li.textContent.trim());
-      }
-
-      const answerEl =
-        b.querySelector(".answerSelect") ||
-        b.querySelector("select[data-answer]");
-      const answer = answerEl?.value || answerEl?.textContent || "";
-
-      const marksEl =
-        b.querySelector(".marksInput") || b.querySelector("[data-marks]");
-      const marks = parseInt(marksEl?.value || marksEl?.textContent || 1);
-
-      const imgEl = b.querySelector("img") || b.querySelector(".imageName");
-      const imageUrl = imgEl?.src || imgEl?.dataset?.url || "";
-
+      const answerEl = b.querySelector(".answerSelect, select");
+      const answer = answerEl ? answerEl.value ?? "" : "";
+      const marksEl = b.querySelector(".marksInput");
+      const marks = marksEl ? Number(marksEl.value || 1) : 1;
+      const imgEl = b.querySelector("img");
+      const imageUrl = imgEl ? imgEl.src : "";
       out.push({
-        id: b.dataset.qid || b.getAttribute("data-id") || `q_${out.length + 1}`,
-        question: qText.trim(),
+        id: b.dataset.qid || `q_${out.length + 1}`,
+        question: String(qText || "").trim(),
         options,
-        answer: answer.trim(),
-        marks: marks || 1,
-        imageUrl
+        answer: String(answer || "").trim(),
+        marks,
+        imageUrl,
       });
     }
-    return out;
   }
-
-  if (typeof window.getQuestions === "function") {
-    try {
-      const g = window.getQuestions();
-      if (Array.isArray(g)) return g;
-    } catch {
-      /* ignore */
-    }
-  }
-  return [];
+  return out;
 }
 
-// ------------------------------------------------------
-// Attach preview handlers (open / close)
-// ------------------------------------------------------
+// ----------------------------
+// Attach preview handlers
+// ----------------------------
 function attachPreviewHandlers() {
   const showBtn = document.getElementById(SHOW_PREVIEW_BTN_ID);
   const closeBtn = document.getElementById(CLOSE_PREVIEW_BTN_ID);
@@ -342,28 +320,21 @@ function attachPreviewHandlers() {
     showBtn.addEventListener("click", async () => {
       try {
         setStatus("Preparing preview...", 2500);
+
         let questions = [];
-
         if (typeof window.getQuestions === "function") {
-          try {
-            const got = window.getQuestions();
-            if (Array.isArray(got) && got.length > 0) questions = got;
-          } catch {}
+          const got = window.getQuestions();
+          if (Array.isArray(got) && got.length > 0) questions = got;
         }
+        if (questions.length === 0) questions = collectQuestionsFromDOM();
 
-        if (!questions.length) questions = collectQuestionsFromDOM();
-
-        if (!questions.length) {
-          toast(
-            "No questions found to preview. Make sure the editor has questions.",
-            "error"
-          );
+        if (questions.length === 0) {
+          toast("No questions found to preview.", "error");
           return;
         }
 
         const meta = {
-          title:
-            document.getElementById("assessmentSelect")?.value || "Assessment",
+          title: document.getElementById("assessmentSelect")?.value || "",
           theclass:
             document.getElementById("classSelect")?.value ||
             document.getElementById("classInput")?.value ||
@@ -372,7 +343,7 @@ function attachPreviewHandlers() {
           year:
             document.getElementById("yearInput")?.value ||
             new Date().getFullYear(),
-          subject: document.getElementById("subjectSelect")?.value || ""
+          subject: document.getElementById("subjectSelect")?.value || "",
         };
 
         openPreviewModalFromData(questions, meta);
@@ -390,21 +361,22 @@ function attachPreviewHandlers() {
   }
 
   if (modal) {
-    modal.addEventListener("click", ev => {
+    modal.addEventListener("click", (ev) => {
       if (ev.target === modal) modal.style.display = "none";
     });
   }
 }
 
-// Initialize when DOM ready
+// ----------------------------
+// Initialize
+// ----------------------------
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", attachPreviewHandlers);
 } else {
   attachPreviewHandlers();
 }
 
-// Default export
 export default {
   renderMath,
-  openPreviewModalFromData
+  openPreviewModalFromData,
 };
