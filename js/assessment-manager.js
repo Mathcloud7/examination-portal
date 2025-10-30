@@ -116,10 +116,11 @@ export async function loadAssessments(filter = {}) {
 try {
 if (!uploadedAssessmentsBody) return;
 uploadedAssessmentsBody.innerHTML = `<tr><td colspan="5" class="small">Loading...</td></tr>`;
+
+```
 const snap = await getDocs(collection(db, "exams"));
 const list = [];
 
-```
 snap.forEach((d) => {
   const data = d.data();
   list.push({ id: d.id, data });
@@ -187,10 +188,18 @@ const pubLabel = d.status === "Published" ? "Unpublish" : "Publish";
 .join("");
 ```
 
-uploadedAssessmentsBody.querySelectorAll(".edit-btn").forEach((b) => b.addEventListener("click", onEdit));
-uploadedAssessmentsBody.querySelectorAll(".delete-btn").forEach((b) => b.addEventListener("click", onDelete));
-uploadedAssessmentsBody.querySelectorAll(".preview-btn").forEach((b) => b.addEventListener("click", onPreview));
-uploadedAssessmentsBody.querySelectorAll(".publish-btn").forEach((b) => b.addEventListener("click", onPublishToggle));
+uploadedAssessmentsBody.querySelectorAll(".edit-btn").forEach((b) =>
+b.addEventListener("click", onEdit)
+);
+uploadedAssessmentsBody.querySelectorAll(".delete-btn").forEach((b) =>
+b.addEventListener("click", onDelete)
+);
+uploadedAssessmentsBody.querySelectorAll(".preview-btn").forEach((b) =>
+b.addEventListener("click", onPreview)
+);
+uploadedAssessmentsBody.querySelectorAll(".publish-btn").forEach((b) =>
+b.addEventListener("click", onPublishToggle)
+);
 }
 
 // ---------------------------
@@ -206,7 +215,9 @@ const ref = doc(db, "exams", id);
 const snap = await getDoc(ref);
 hideLoader();
 if (!snap.exists()) return toast("Assessment not found.", "error");
-window.dispatchEvent(new CustomEvent("assessment:edit", { detail: { id, data: snap.data() } }));
+window.dispatchEvent(
+new CustomEvent("assessment:edit", { detail: { id, data: snap.data() } })
+);
 toast("Loaded for editing.", "info");
 } catch (err) {
 console.error("onEdit:", err);
@@ -249,7 +260,10 @@ showLoader("Updating status...");
 const found = cachedAssessments.find((x) => x.id === id);
 const currentStatus = found?.data?.status || "Draft";
 const newStatus = currentStatus === "Published" ? "Draft" : "Published";
-await updateDoc(doc(db, "exams", id), { status: newStatus, updatedAt: serverTimestamp() });
+await updateDoc(doc(db, "exams", id), {
+status: newStatus,
+updatedAt: serverTimestamp(),
+});
 toast(newStatus === "Published" ? "Published." : "Unpublished.", "success");
 await loadAssessments();
 } catch (err) {
@@ -274,11 +288,19 @@ questions = window.getQuestions() || [];
 
 ```
   if (!Array.isArray(questions) || questions.length === 0) {
-    const blocks = document.querySelectorAll(".question-card, .question-block, [data-qid]");
+    const blocks = document.querySelectorAll(
+      ".question-card, .question-block, [data-qid]"
+    );
     blocks.forEach((b, i) => {
-      const qText = b.querySelector("textarea, .questionInput, .editable")?.value || b.textContent || "";
-      const opts = Array.from(b.querySelectorAll("input[type='text'], .optionInput")).map((o) => o.value || "");
-      const ans = b.querySelector("select, .answerSelect")?.value || "";
+      const qText =
+        b.querySelector("textarea, .questionInput, .editable")?.value ||
+        b.textContent ||
+        "";
+      const opts = Array.from(
+        b.querySelectorAll("input[type='text'], .optionInput")
+      ).map((o) => o.value || "");
+      const ans =
+        b.querySelector("select, .answerSelect")?.value || "";
       const img = b.querySelector("img")?.src || "";
       const marks = parseInt(b.querySelector(".marksInput")?.value || "1");
       if (qText.trim()) {
@@ -317,7 +339,15 @@ attachSaveHandler();
 const year = safe(yearInput?.value);
 loadAssessments(year ? { year } : {});
 [yearInput, termSelect, classSelect, subjectSelect].forEach((el) => {
-if (el) el.addEventListener("change", () => loadAssessments({ year: yearInput?.value, term: termSelect?.value, theclass: classSelect?.value, subject: subjectSelect?.value }));
+if (el)
+el.addEventListener("change", () =>
+loadAssessments({
+year: yearInput?.value,
+term: termSelect?.value,
+theclass: classSelect?.value,
+subject: subjectSelect?.value,
+})
+);
 });
 })();
 
