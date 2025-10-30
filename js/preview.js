@@ -252,17 +252,23 @@ function collectQuestionsFromDOM() {
 
   if (blocks.length > 0) {
     for (const b of blocks) {
-      const qInput = b.querySelector(".questionInput, textarea, [data-field='text'], .editable");
-      const qText = qInput ? (qInput.value ?? qInput.innerHTML ?? qInput.textContent) : (b.querySelector("h4")?.textContent || b.querySelector(".qtext")?.textContent || "");
-      const optionEls = b.querySelectorAll(".optionInput, .option input, .editable-option, [data-field^='opt-']");
-      let options = [];
-      if (optionEls.length >= 1) {
-        options = Array.from(optionEls).map(o => (o.value ?? o.innerHTML ?? o.textContent || "").trim());
-      } else {
-        const lis = b.querySelectorAll("li");
-        if (lis.length > 0) options = Array.from(lis).map(li => li.textContent.trim());
-      }
-      const answerEl = b.querySelector(".answerSelect, select, [data-answer]");
+const qInput = b.querySelector(".questionInput, textarea, [data-field='text'], .editable");
+const qText = qInput
+  ? ((qInput.value || qInput.innerHTML || qInput.textContent || "").trim())
+  : ((b.querySelector("h4")?.textContent || b.querySelector(".qtext")?.textContent || "").trim());
+
+const optionEls = b.querySelectorAll(".optionInput, .option input, .editable-option, [data-field^='opt-']");
+let options = [];
+
+if (optionEls.length > 0) {
+  options = Array.from(optionEls).map(o => (o.value || o.innerHTML || o.textContent || "").trim());
+} else {
+  const lis = b.querySelectorAll("li");
+  if (lis.length > 0) options = Array.from(lis).map(li => li.textContent.trim());
+}
+
+const answerEl = b.querySelector(".answerSelect, select, [data-answer]");
+
       const answer = answerEl ? (answerEl.value ?? answerEl.textContent ?? "") : (b.querySelector(".correct")?.textContent || "");
       const marksEl = b.querySelector(".marksInput, [data-marks]");
       const marks = marksEl ? (marksEl.value ?? marksEl.textContent ?? 1) : 1;
@@ -357,3 +363,4 @@ if (document.readyState === "loading") {
 // Default export
 // ------------------------------------------------------------------
 export default { renderMath, openPreviewModalFromData };
+
