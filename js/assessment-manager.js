@@ -171,22 +171,28 @@ const dateStr = d.updatedAt
 const pubLabel = d.status === "Published" ? "Unpublish" : "Publish";
 
 ```
-  return `
-    <tr>
-      <td>${d.assessmentName || ""}</td>
-      <td>${d.subject || ""}</td>
-      <td>${d.theclass || ""}</td>
-      <td>${dateStr}</td>
-      <td style="white-space:nowrap">
-        <button class="btn small edit-btn" data-id="${item.id}">Edit</button>
-        <button class="btn ghost small preview-btn" data-id="${item.id}">Preview</button>
-        <button class="btn ghost small delete-btn" data-id="${item.id}">Delete</button>
-        <button class="btn small publish-btn" data-id="${item.id}" data-status="${d.status || "Draft"}">${pubLabel}</button>
-      </td>
-    </tr>`;
-})
-.join("");
-```
+const html = data
+  .map(item => {
+    const d = item.data || item; // handle Firestore doc vs plain object
+    const dateStr = formatDateTime(d.createdAt);
+    const pubLabel = d.status === "Published" ? "Unpublish" : "Publish";
+
+    return `
+      <tr>
+        <td>${d.assessmentName || ""}</td>
+        <td>${d.subject || ""}</td>
+        <td>${d.theclass || ""}</td>
+        <td>${dateStr}</td>
+        <td style="white-space:nowrap">
+          <button class="btn small edit-btn" data-id="${item.id}">Edit</button>
+          <button class="btn ghost small preview-btn" data-id="${item.id}">Preview</button>
+          <button class="btn ghost small delete-btn" data-id="${item.id}">Delete</button>
+          <button class="btn small publish-btn" data-id="${item.id}" data-status="${d.status || "Draft"}">${pubLabel}</button>
+        </td>
+      </tr>`;
+  })
+  .join("");
+
 
 uploadedAssessmentsBody.querySelectorAll(".edit-btn").forEach((b) =>
 b.addEventListener("click", onEdit)
@@ -352,3 +358,4 @@ subject: subjectSelect?.value,
 })();
 
 export default { saveAssessment, loadAssessments, cachedAssessments };
+
