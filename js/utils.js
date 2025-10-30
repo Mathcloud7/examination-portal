@@ -169,15 +169,28 @@ const dateStr = d.updatedAt
 ? formatDateTime(d.updatedAt.seconds ? d.updatedAt.seconds * 1000 : d.updatedAt)
 : "";
 const pubLabel = d.status === "Published" ? "Unpublish" : "Publish";
-const esc = (x) => String(x || "").replace(/[<>&]/g, (c) => ({ "<": "<", ">": ">", "&": "&" }[c]));
 
-```
+const esc = (x) =>
+  String(x || "").replace(/[<>&]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" }[c]));
+
+// ✅ Properly formatted and escaped template literal:
 return `
   <tr>
     <td>${esc(d.assessmentName)}</td>
     <td>${esc(d.subject)}</td>
     <td>${esc(d.theclass)}</td>
     <td>${esc(dateStr)}</td>
+    <td style="white-space:nowrap">
+      <button class="btn small edit-btn" data-id="${item.id}">Edit</button>
+      <button class="btn ghost small preview-btn" data-id="${item.id}">Preview</button>
+      <button class="btn ghost small delete-btn" data-id="${item.id}">Delete</button>
+      <button class="btn small publish-btn" data-id="${item.id}" data-status="${d.status || "Draft"}">
+        ${pubLabel}
+      </button>
+    </td>
+  </tr>
+`;
+
     <td style="white-space:nowrap">
       <button class="btn small edit-btn" data-id="${item.id}">Edit</button>
       <button class="btn ghost small preview-btn" data-id="${item.id}">Preview</button>
@@ -349,3 +362,4 @@ subject: subjectSelect?.value
 })();
 
 export default { saveAssessment, loadAssessments, cachedAssessments };
+
