@@ -1,7 +1,6 @@
 //
-// utils.js — Final Corrected Version
+// utils.js — Final Corrected Version (Stable & Compatible)
 // Shared utilities for Orli Exam Creator (ES module)
-// Usage: import { toast, escapeHtml, renderMixedText, uid, debounce, confirmDialog, showLoader, hideLoader, formatDateTime, confirmAction } from './utils.js';
 //
 
 const TOAST_CONTAINER_ID = 'toastWrap';
